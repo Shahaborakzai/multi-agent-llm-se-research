@@ -103,7 +103,7 @@ Two variables isolated:
 
 ---
 
-## 📊 Phase 2: SWE-bench Results (#1–6)
+##  Phase 2: SWE-bench Results (#1–6)
 
 | Task | Files | Anti-Paralysis | Result | Failure Type | Key Finding |
 |------|-------|---------------|--------|--------------|-------------|
