@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.12-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-# 🤖 Multi-Agent LLM Evaluation for Software Engineering
+# Multi-Agent LLM Evaluation for Software Engineering
 
 **ITMO University | Faculty of AI Technologies (FATII)**
 **Student:** Shahab Ali | ID: 503271 | Group: J4132
@@ -12,7 +12,7 @@
 
 ---
 
-## 📖 Project Overview
+##Project Overview
 
 Experimental implementation and quantitative benchmarking 
 of multi-agent LLM roles within the OpenHands CodeAct 
@@ -32,7 +32,7 @@ across established software engineering benchmarks.
 
 ---
 
-## 🏗️ Agent Role Taxonomy (Semester 1)
+##  Agent Role Taxonomy (Semester 1)
 
 Built from SLR of 19 state-of-the-art papers:
 
@@ -52,7 +52,7 @@ Agent Roles — 7 Layers
 
 ---
 
-## 🔬 Methodology & Configurations
+##  Methodology & Configurations
 
 Two variables isolated:
 
@@ -70,36 +70,36 @@ Two variables isolated:
 
 ---
 
-## 📊 Phase 1: HumanEval Results (#1–15)
+##  Phase 1: HumanEval Results (#1–15)
 
 ### By Configuration:
 
 | # | LLM Scale | Agent Role | Tasks | Crash% | Self-Heal% | Pass% |
 |---|-----------|------------|-------|--------|------------|-------|
-| 1 | Local 7B | Single Coder | 5 | 🔴 100% | 0% | **0%** |
-| 2 | Local 7B | Coder+Tester | 5 | 🔴 100% | 0% | **0%** |
-| 3 | Cloud 120B | Single Coder | 5 | 0% | 🔵 100% | 🟢 **100%** |
-| 4 | Cloud 120B | Coder+Tester | 10 | 0% | 🔵 100% | 🟢 **100%** |
+| 1 | Local 7B | Single Coder | 5 |  100% | 0% | **0%** |
+| 2 | Local 7B | Coder+Tester | 5 |  100% | 0% | **0%** |
+| 3 | Cloud 120B | Single Coder | 5 | 0% |  100% |  **100%** |
+| 4 | Cloud 120B | Coder+Tester | 10 | 0% |  100% |  **100%** |
 
 ### Complete Task Execution Matrix:
 
 | Task | Config | LLM | Setup | Result | Error Type | Self-Healed |
 |------|--------|-----|-------|--------|------------|-------------|
-| #1 | 1 | 7B | A | ❌ FAIL | Core Collapse | No |
-| #2 | 3 | 120B | A | ❌ FAIL | security_risk | No |
-| #3 | 4 | 120B | B | ✅ PASS | None | N/A |
-| #4 | 3 | 120B | A | ✅ PASS | None | N/A |
-| #5 | 3 | 120B | A | ✅ PASS | None | N/A |
-| #6 | 4 | 120B | B | ✅ PASS | security_risk | ✅ Yes |
-| #7 | 3 | 120B | A | ✅ PASS | security_risk | ✅ Yes |
-| #8 | 4 | 120B | B | ✅ PASS | security_risk | ✅ Yes |
-| #9 | 3 | 120B | A | ✅ PASS | File Conflict | ✅ Yes |
-| #10 | 4 | 120B | B | ✅ PASS | security_risk | ✅ Yes |
-| #11 | 4 | 120B | B | ✅ PASS | security_risk | ✅ Yes |
-| #12 | 4 | 120B | B | ✅ PASS | security_risk | ✅ Yes |
-| #13 | 4 | 120B | B | ✅ PASS | security_risk | ✅ Yes |
-| #14 | 4 | 120B | B | ✅ PASS | Placeholder Hallucination | ✅ Yes |
-| #15 | 4 | 120B | B | ✅ PASS | security_risk | ✅ Yes |
+| #1 | 1 | 7B | A |  FAIL | Core Collapse | No |
+| #2 | 3 | 120B | A |  FAIL | security_risk | No |
+| #3 | 4 | 120B | B |  PASS | None | N/A |
+| #4 | 3 | 120B | A |  PASS | None | N/A |
+| #5 | 3 | 120B | A |  PASS | None | N/A |
+| #6 | 4 | 120B | B |  PASS | security_risk |  Yes |
+| #7 | 3 | 120B | A |  PASS | security_risk |  Yes |
+| #8 | 4 | 120B | B |  PASS | security_risk |  Yes |
+| #9 | 3 | 120B | A |  PASS | File Conflict |  Yes |
+| #10 | 4 | 120B | B |  PASS | security_risk |  Yes |
+| #11 | 4 | 120B | B |  PASS | security_risk |  Yes |
+| #12 | 4 | 120B | B |  PASS | security_risk |  Yes |
+| #13 | 4 | 120B | B |  PASS | security_risk |  Yes |
+| #14 | 4 | 120B | B |  PASS | Placeholder Hallucination |  Yes |
+| #15 | 4 | 120B | B |  PASS | security_risk |  Yes |
 
 ---
 
@@ -107,19 +107,19 @@ Two variables isolated:
 
 | Task | Files | Anti-Paralysis | Result | Failure Type | Key Finding |
 |------|-------|---------------|--------|--------------|-------------|
-| SWE #1 | calculator+app | ❌ No | ✅ PASS | Token Limit | Agentic Loop |
-| SWE #2 | app.py | ❌ No | ❌ FAIL | Missing Flask | Env Dependency |
-| SWE #3 | calculator.py | ❌ No | ❌ FAIL | Verbose Paralysis | Chain Failure |
-| SWE #4 | math_utils | ✅ Yes | ✅ PASS | None | Perfect 8/8 |
-| SWE #5 | humaneval_results | ✅ Yes | ✅ PASS | None | Perfect 11/11 |
-| SWE #6 | calculator ext. | ✅ Yes | ✅ PASS | Minor Paralysis | Recovered |
+| SWE #1 | calculator+app |  No |  PASS | Token Limit | Agentic Loop |
+| SWE #2 | app.py |  No |  FAIL | Missing Flask | Env Dependency |
+| SWE #3 | calculator.py |  No |  FAIL | Verbose Paralysis | Chain Failure |
+| SWE #4 | math_utils |  Yes |  PASS | None | Perfect 8/8 |
+| SWE #5 | humaneval_results |  Yes |  PASS | None | Perfect 11/11 |
+| SWE #6 | calculator ext. |  Yes |  PASS | Minor Paralysis | Recovered |
 
 ### Anti-Paralysis Prompt Impact:
 
 | Condition | Tasks | Pass Rate |
 |-----------|-------|-----------|
-| Without Anti-Paralysis instruction | 3 | 🔴 33.3% |
-| With Anti-Paralysis instruction | 3 | 🟢 100% |
+| Without Anti-Paralysis instruction | 3 |  33.3% |
+| With Anti-Paralysis instruction | 3 |  100% |
 
 > **Anti-Paralysis Instruction Used:**
 > *"If any single action fails or repeats more than 3 times,
@@ -128,7 +128,7 @@ Two variables isolated:
 
 ---
 
-## 💡 Key Discoveries
+##  Key Discoveries
 
 ### 1. Framework Brittleness vs Cognitive Scale
 Local 7B models: **100% crash rate** regardless of role.
@@ -136,7 +136,7 @@ Root cause: inability to follow strict XML tool-calling
 schemas in CodeAct architecture.
 Cloud 120B models: **100% pass rate** on all HumanEval tasks.
 
-### 2. Emergent Self-Healing Phenomenon ⭐
+### 2. Emergent Self-Healing Phenomenon 
 The 120B model autonomously recovered from errors in 
 **9/10 cases (90% recovery rate)**.
 Types of errors self-healed:
@@ -154,7 +154,7 @@ agent correctly identified next step but failed to execute.
 - **Severe (Verbose):** 200+ repetitions → Token exhaustion 
   → Chain failure cascade
 
-### 4. Anti-Paralysis Prompt Engineering ⭐
+### 4. Anti-Paralysis Prompt Engineering 
 Single meta-cognitive constraint increased SWE-bench 
 pass rate from **33.3% → 100%**.
 
@@ -168,7 +168,7 @@ CI/CD terminal noise floods agent context window.
 
 ---
 
-## 🗂️ Failure Taxonomy (10 Types Documented)
+##  Failure Taxonomy (10 Types Documented)
 
 | # | Failure Type | Recovery | Prevention |
 |---|-------------|----------|------------|
@@ -185,7 +185,7 @@ CI/CD terminal noise floods agent context window.
 
 ---
 
-## 📈 Overall Statistics
+##  Overall Statistics
 
 | Metric | Value |
 |--------|-------|
@@ -203,7 +203,7 @@ CI/CD terminal noise floods agent context window.
 
 ---
 
-## 📁 Repository Structure
+##  Repository Structure
 
 ```
 ├── /experiments
@@ -220,7 +220,7 @@ CI/CD terminal noise floods agent context window.
 
 ---
 
-## 🚀 Replication Instructions
+##  Replication Instructions
 
 ### 1. Start OpenHands Container:
 ```bash
@@ -259,7 +259,7 @@ python -m unittest test_results_verify -q
 
 ---
 
-## 📚 Key Literature (Semester 1 SLR)
+##  Key Literature (Semester 1 SLR)
 
 | Paper | Year | Key Role |
 |-------|------|----------|
@@ -271,7 +271,7 @@ python -m unittest test_results_verify -q
 
 ---
 
-## 👤 Contact
+##  Contact
 
 **Student:** Shahab Ali
 **Student ID:** 503271
