@@ -1,0 +1,8 @@
+Config,Label,Pass,Fail,Total,PassRate%
+baseline,Baseline (No Role),19,1,20,95.0
+coder_A,Coder A: Identity Only,0,20,20,0.0
+coder_B,Coder B: Identity + Responsibility,0,20,20,0.0
+coder_C,Coder C: Full Prompt,20,0,20,100.0
+full_A,Full A: Titles Only,0,20,20,0.0
+full_B,Full B: Titles + Responsibilities,0,20,20,0.0
+full_C,Full C: Full Prompt,19,1,20,95.0

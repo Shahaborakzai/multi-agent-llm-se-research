@@ -1,0 +1,5 @@
+Configuration,Pass,Fail,Total,PassRate%
+baseline,149,12,161,92.5
+coder,155,9,164,94.5
+coder_tester,152,12,164,92.7
+full_system,156,8,164,95.1

@@ -1,0 +1,27 @@
+=== COMPLETE Q2 SCIENTIFIC ANALYSIS ===
+
+Key finding: For 156/164 tasks both methods fail to
+distinguish configs because all configs pass equally.
+The 8 tasks where configs differ are the scientifically
+interesting cases.
+
+Decision tree rules:
+|--- type_count <= 9.50
+|   |--- num_words <= 217.00
+|   |   |--- uses_list <= 1.50
+|   |   |   |--- complex_words <= 4.50
+|   |   |   |   |--- class: baseline
+|   |   |   |--- complex_words >  4.50
+|   |   |   |   |--- class: baseline
+|   |   |--- uses_list >  1.50
+|   |   |   |--- num_lines <= 8.50
+|   |   |   |   |--- class: coder
+|   |   |   |--- num_lines >  8.50
+|   |   |   |   |--- class: baseline
+|   |--- num_words >  217.00
+|   |   |--- class: coder
+|--- type_count >  9.50
+|   |--- examples <= 1.00
+|   |   |--- class: baseline
+|   |--- examples >  1.00
+|   |   |--- class: coder

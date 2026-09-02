@@ -1,0 +1,5 @@
+Configuration,Resolved,Failed,Total,ResolveRate%
+Baseline (No Roles),22,8,30,73.3
+Coder Only,25,5,30,83.3
+Coder + Tester,20,10,30,66.7
+Manager + Coder + Tester,24,6,30,80.0

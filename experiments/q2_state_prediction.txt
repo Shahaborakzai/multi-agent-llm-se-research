@@ -1,0 +1,21 @@
+=== Q2: STATE PREDICTION METHOD ===
+
+Method: Decision Tree Classifier
+Input state: task features extracted from prompt
+Output action: predicted optimal role configuration
+
+Results:
+  Baseline (No Roles):    92.5%
+  Coder Only:             94.5%
+  Coder + Tester:         92.7%
+  Manager+Coder+Tester:   95.1%
+  Rule-based (heuristic): 95.7%
+  State Predictor (DT):   93.3%  <- scientific method
+
+Top features:
+  type_count:    0.267
+  num_words:     0.217
+  examples:      0.159
+  uses_list:     0.154
+  num_lines:     0.153
+  complex_words: 0.050
