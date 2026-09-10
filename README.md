@@ -9,7 +9,21 @@
 
 **ITMO University | Faculty of Artificial Intelligence Technologies (FATII)**
 **Student:** Shahab Ali | ID: 503271 | Group: J4132
-**Supervisor:** Professor Sergey Kovalchuk | 2025-2026
+**Supervisor:** Professor Sergey Kovalchuk | 2025–2026
+
+---
+
+## Key Findings
+
+| Finding | Result |
+|---|---|
+| Role identity alone ("You are a Coder") | 0/20 — zero effect |
+| Output format constraint added | 20/20 — the critical component |
+| Adding a Tester (SWE-bench) | 20/30 vs 22/30 baseline — net-negative, 99 s slower |
+| Learned role selector | 94.5% vs 95.1% trivial policy — does not beat it |
+| Where configuration matters | 19 of 164 tasks (8 rescued, 11 lost) |
+
+**Total: 937 runs · one model · one variable**
 
 ---
 
@@ -18,36 +32,46 @@
 This research evaluates how different multi-agent role configurations affect LLM agent performance on standard software engineering benchmarks. The same underlying model is tested across four role configurations to isolate the effect of role assignment from model capability.
 
 **Total experimental runs: 937**
-- HumanEval: 164 tasks x 4 configurations = 776 runs
-- SWE-bench Lite: 30 tasks x 4 configurations = 120 runs
-- Prompt Ablation: 20 tasks x 7 variants = 140 runs
-- Phase 1 (early): 21 runs
-- Prompt Ablation (Q1): 20 tasks x 7 variants = 140 runs
+
+| Component | Count |
+|---|---|
+| HumanEval (164 tasks × 4 configurations) | 656 runs |
+| SWE-bench Lite (30 tasks × 4 configurations) | 120 runs |
+| Prompt ablation (20 tasks × 7 variants) | 140 runs |
+| Phase 1 (early experiments) | 21 runs |
+| **Phase 2 total** | **916** |
+| **All-time total** | **937** |
 
 ---
 
-## Two Semester Journey
+## Research Questions
 
-### Semester 1 (Theory) — Systematic Literature Review
+| RQ | Question | Answer |
+|---|---|---|
+| RQ1 | Which agent roles exist in LLM-based SE frameworks? | 7-layer taxonomy from 19 sources |
+| RQ2 | Which prompt component produces the effect? | The output constraint, not the persona |
+| RQ3 | Can configuration be predicted from the task? | No — ceiling effect, negative result |
 
-Following PRISMA guidelines, analyzed 19 state-of-the-art papers (2023-2025).
+---
+
+## Semester 1 — Structured Literature Review (RQ1)
+
+Following PRISMA-style inclusion criteria, 19 sources were analysed (2023–2025): 7 multi-agent systems and 12 surveys, taxonomies and empirical studies.
 
 **Search Keywords:** ("Large Language Model" OR "LLM") AND ("Software Engineering") AND ("Multi-agent" OR "Role-based")
 
-**Built a 7-layer Agent Role Taxonomy:**
+**7-layer Agent Role Taxonomy:**
 
-```
-Agent Roles — 7 Layers
-├── 1. Orchestration      → Manager, Supervisor, Project Coordinator
-├── 2. Analysis/Planning  → Planner, Requirement Analyst
-├── 3. Design             → Architect, System Modeler
-├── 4. Implementation     → Coder, Executor
-├── 5. Quality Assurance  → Tester, Reviewer, Debugger (9 papers - highest)
-├── 6. Knowledge          → KG Curator, Documentation Writer (8 papers)
-└── 7. Operations         → Tooling, Environment Interface (6 papers)
-```
+    Agent Roles — 7 Layers
+    ├── 1. Orchestration      → Manager, Supervisor, Project Coordinator (5 sources)
+    ├── 2. Analysis/Planning  → Planner, Requirement Analyst (5 sources)
+    ├── 3. Design             → Architect, System Modeler (4 sources)
+    ├── 4. Implementation     → Coder, Executor (5 sources)
+    ├── 5. Quality Assurance  → Tester, Reviewer, Debugger (5 of 7 systems — largest)
+    ├── 6. Knowledge          → KG Curator, Documentation Writer (8 sources)
+    └── 7. Operations         → Tooling, Environment Interface (6 sources)
 
-**Key Frameworks Analyzed:**
+**Key Frameworks:**
 
 | Framework | Year | Core Roles | Key Technique |
 |---|---|---|---|
@@ -56,15 +80,15 @@ Agent Roles — 7 Layers
 | Magentic-One | 2025 | Manager, Specialist Agents | Manager-Worker orchestration |
 | PotPie | 2025 | Debugger, Tester, KG Curator | Knowledge Graph grounding |
 
-**Key Trend:** Shift from code Generation to Verification — QA layer dominates (9/19 papers).
+**Key Trend:** Shift from code generation to verification — the QA layer dominates (5 of the 7 systems; 9 of 19 sources).
 
 ---
 
-### Semester 2 (Initial Experiments) — Framework Evaluation
+## Semester 2 — Initial Experiments (Phase 1)
 
-Tested local vs cloud LLMs within OpenHands CodeAct framework.
+Tested local vs cloud LLMs within OpenHands CodeAct framework. 21 runs total.
 
-**Phase 1: HumanEval (15 tasks)**
+**HumanEval (15 tasks):**
 
 | Config | LLM | Pass% |
 |---|---|---|
@@ -73,229 +97,166 @@ Tested local vs cloud LLMs within OpenHands CodeAct framework.
 | Single Coder | Cloud 120B | 100% |
 | Coder+Tester | Cloud 120B | 100% |
 
-**Phase 2: SWE-bench (6 tasks)**
+> Note: the 7B condition covers two HumanEval tasks plus deployment attempts — an infrastructure finding, not a benchmark result.
+
+**SWE-bench (6 tasks, different tasks before/after):**
 
 | Condition | Pass Rate |
 |---|---|
 | Without Anti-Paralysis instruction | 33.3% |
 | With Anti-Paralysis instruction | 100% |
 
+> An observation on six different tasks that motivated the redesign, not a controlled comparison.
+
 **Key Discoveries:**
 
-**1. Self-Healing Phenomenon:** 120B model autonomously recovered from errors in 9/10 cases (90% recovery rate).
+**1. Self-Healing Phenomenon** — 120B model autonomously recovered from errors in 9/10 cases (90% recovery rate).
 
-**2. Agentic Paralysis:** Complex tasks induced reasoning loops where agent correctly identified next step but failed to execute.
+**2. Agentic Paralysis** — a failure mode where agents reason correctly but fail to execute the tool call.
 
-**3. Anti-Paralysis Prompt:** Single meta-cognitive constraint increased SWE-bench pass rate from 33.3% to 100%.
-
-**Failure Taxonomy (10 Types Documented):**
-
-| # | Failure Type | Recovery |
-|---|---|---|
-| 1 | XML Schema Error | Self-Heal |
-| 2 | Context Collapse | None |
-| 3 | System Prompt Bleed | None |
-| 4 | File Conflict | Pivot |
-| 5 | Placeholder Hallucination | Self-Heal |
-| 6 | Agentic Paralysis | None |
-| 7 | Verbose Agentic Paralysis | Partial |
-| 8 | Chain Failure | None |
-| 9 | Environment Dependency | None |
-| 10 | File Not Found | Exploration |
+**3. Ten Failure Types** catalogued across the runs (XML schema errors, context collapse, verbose paralysis, and 7 more).
 
 ---
 
-## Post-Defense Extended Experiments (2026)
+## Phase 2 — Extended Experiments (2026)
 
-After defense rejection for insufficient sample size, experiments were massively expanded using a fully automated evaluation pipeline.
-
-**Setup:**
+After the first defence identified insufficient sample size, experiments were expanded with a fully automated pipeline.
 
 | Component | Details |
 |---|---|
-| Framework | OpenHands CodeAct |
-| Model | claude-haiku-4-5 (SAME for ALL configs) |
+| Framework | OpenHands CodeAct (Docker) |
+| Model | claude-haiku-4-5 (same for ALL configurations) |
 | HumanEval | 164 tasks (full benchmark) |
-| SWE-bench | 30 tasks (SWE-bench Lite) |
-| Ablation | 20 tasks x 7 prompt variants |
+| SWE-bench Lite | the first 30 tasks |
+| Ablation | the first 20 tasks × 7 prompt variants |
 | Timeout | 400 s (HumanEval) · 600 s (SWE-bench) |
-| Total Runs | 916 (+ 21 Phase 1 = 937 total) |
+| Total Runs | 776 evaluation + 140 ablation = 916 |
 
-**Four Role Configurations:**
-
-| Configuration | Description |
-|---|---|
-| Baseline (No Roles) | Direct task, no role assignment |
-| Coder Only | Single Coder agent with format constraint |
-| Coder + Tester | Two roles: Coder writes, Tester verifies |
-| Manager + Coder + Tester | Three roles: Manager plans, Coder implements, Tester verifies |
+**Four Role Configurations:** Baseline (no roles) · Coder only · Coder+Tester · Manager+Coder+Tester
 
 ---
 
-### HumanEval Results (164 tasks, metric: pass@1)
-
-pass@1 = agent passes ALL official test cases on first attempt.
+### HumanEval Results (pass@1)
 
 | Configuration | Tasks | Pass | Fail | pass@1 | vs Baseline |
 |---|---|---|---|---|---|
 | Baseline (No Roles) | 164 | 151 | 13 | 92.1% | — |
-| Coder Only | 164 | 155 | 9 | 94.5% | +2.0 pp |
-| Coder + Tester | 164 | 152 | 12 | 92.7% | +0.2 pp |
-| **Manager+Coder+Tester** | **164** | **156** | **8** | **95.1%** | **+2.6 pp** |
+| Coder Only | 164 | 155 | 9 | 94.5% | +2.4 pp |
+| Coder + Tester | 164 | 152 | 12 | 92.7% | +0.6 pp |
+| Manager+Coder+Tester | 164 | 156 | 8 | 95.1% | +3.0 pp |
 
-**Failure Analysis:**
-
-| Configuration | SyntaxError | AssertionError | NameError | EmptyCode |
-|---|---|---|---|---|
-| Baseline | 4 | 4 | 3 | 1 |
-| Coder Only | 0 | 3 | 5 | 1 |
-| Coder + Tester | 0 | 6 | 4 | 2 |
-| Manager+Coder+Tester | 0 | 3 | 4 | 1 |
+Baseline is the only configuration producing SyntaxErrors (four); every role prompt produced zero.
 
 ---
 
-### SWE-bench Lite Results (30 real GitHub tasks, metric: resolve_rate)
+### SWE-bench Lite Results (resolve rate)
 
-resolve_rate = agent modified correct source files, verified via git diff against reference patch.
+| Configuration | Resolved | Failed | Rate | Avg Time | Resolved Avg |
+|---|---|---|---|---|---|
+| Baseline | 22 | 8 | 73.3% | 296s | 169s |
+| **Coder Only** | **25** | **5** | **83.3%** | **232s** | **152s** |
+| Coder + Tester | 20 | 10 | 66.7% | 331s | 174s |
+| Manager+Coder+Tester | 24 | 6 | 80.0% | 295s | 206s |
 
-| Configuration | Tasks | Resolved | Failed | Rate | Avg Time | Resolved Avg |
-|---|---|---|---|---|---|---|
-| Baseline (No Roles) | 30 | 22 | 8 | 73.3% | 296s | 168.9s |
-| **Coder Only** | **30** | **25** | **5** | **83.3%** | **232s** | **151.5s** |
-| Coder + Tester | 30 | 20 | 10 | 66.7% | 331s | 174.2s |
-| Manager+Coder+Tester | 30 | 24 | 6 | 80.0% | 295s | 206.1s |
-
-> All SWE-bench failures are timeouts (600s limit), not logic errors.
-
-**Cross-Benchmark Comparison:**
-
-| Configuration | HumanEval | SWE-bench | vs Baseline (HE) | vs Baseline (SWE) |
-|---|---|---|---|---|
-| Baseline | 92.1% | 73.3% | — | — |
-| Coder Only | 94.5% | 83.3% | +2.4 pp | +10.0 pp |
-| Coder + Tester | 92.7% | 66.7% | +0.6 pp | -6.6 pp |
-| Manager+Coder+Tester | 95.1% | 80.0% | +3.0 pp | +6.7 pp |
+> All failures are timeouts, not logic errors. On 30 paired tasks, no pairwise McNemar test can reach significance (minimum achievable p = 0.0625) — the resolve-rate differences are within noise; the timing is the signal.
 
 ---
 
-### Research Question 1 — Prompt Ablation Study
+### RQ2 — Prompt Ablation (The Constrained Action Space)
 
-**Question:** What details in the role prompt most influence agent performance?
-
-**Method:** 7 prompt variants tested on 20 tasks (140 runs total).
+7 prompt variants tested on the first 20 HumanEval tasks (140 runs):
 
 | Variant | Components | pass@1 |
 |---|---|---|
-| Baseline | No role | 95.0% |
-| Coder A | Identity only: "You are a Coder" | 0.0% |
+| Baseline | No role (constraint only) | 95.0% |
+| Coder A | Identity only | 0.0% |
 | Coder B | Identity + Responsibility | 0.0% |
-| **Coder C** | **Identity + Responsibility + Format** | **100.0%** |
-| Full A | All role titles only | 0.0% |
+| **Coder C** | **Identity + Resp. + Format** | **100.0%** |
+| Full A | All titles only | 0.0% |
 | Full B | All titles + responsibilities | 0.0% |
 | Full C | All full prompts with format | 95.0% |
 
-**Finding:** The output format constraint is the single critical component. Without "Output ONLY the function, no explanation" — agents produce unparseable output regardless of role identity. Role identity and responsibility alone have zero effect.
-
-**Why it works:** LLMs are trained on data where code is accompanied by explanations. Without the format constraint, the model's default output distribution produces verbose responses. The format instruction shifts this distribution toward code-only output.
+**Finding:** the output format constraint is the single critical component. Prompt length is ruled out: the constraint-only variant is a short prompt and passes 19/20, while the longest no-constraint variant passes 0/20.
 
 ---
 
-### Research Question 2 — State Prediction and Coordination Overhead
-
-**Finding: The Coordination Overhead Principle**
-
-On repository-level tasks (SWE-bench), adding a Tester is net-negative:
-- Coder+Tester resolves 20/30 against Baseline's 22/30
-- Coder+Tester is 99 seconds slower per task (331s vs 232s)
-- Every failure is a timeout — coordination pushes tasks past the budget
-
-**State Prediction — Negative Result:**
+### RQ3 — State Prediction (Negative Result)
 
 | Method | pass@1 | Type |
 |---|---|---|
 | Baseline | 92.1% | Fixed |
 | Coder Only | 94.5% | Fixed |
+| Coder + Tester | 92.7% | Fixed |
 | Manager+Coder+Tester | 95.1% | Fixed |
-| Majority-class policy | 95.1% | Trivial |
-| State Predictor (DT) | 94.5% | Dynamic |
+| **Majority-class policy** | **95.1%** | **Trivial** |
+| **State Predictor (DT)** | **94.5%** | **Dynamic** |
 
-The learned selector does **not** beat the trivial always-baseline policy. This is a ceiling effect: baseline passes 151/164 tasks, only 8 are rescuable by any role — too few positives for a classifier to exploit.
+The learned selector does **not** beat the trivial always-baseline policy. Ceiling effect: baseline passes 151/164 tasks; only 8 are rescuable by any role (all 8 by the single Coder); 5 are solved by nothing. Role configuration changes the outcome on 19 of 164 tasks; on the remaining 145, all four configurations produce identical results.
 
-**Top features (6 of 12 used; rest have importance = 0):**
-
-| Feature | Importance |
-|---|---|
-| type_count | 0.267 |
-| num_words | 0.217 |
-| examples | 0.159 |
-| uses_list | 0.154 |
-| num_lines | 0.153 |
-| complex_words | 0.050 |
-
-**Key finding:** Role configuration matters for only 8 of 164 tasks. On 145 tasks all four configurations produce identical outcomes.
+**Feature importance (6 of 12 used, rest = 0):** type_count 0.267 · num_words 0.217 · examples 0.159 · uses_list 0.154 · num_lines 0.153 · complex_words 0.050
 
 ---
 
 ## Repository Structure
 
-```
-/experiments
-  run_eval_v2.py               - HumanEval automated evaluation script
-  swe_eval_proper.py           - SWE-bench evaluation with real repo cloning
-  ablation_study.py            - Q1 prompt ablation study script
-  eval_results.jsonl           - HumanEval raw results (653 runs)
-  eval_summary_FINAL.csv       - HumanEval summary table
-  swe_results_FINAL.jsonl      - SWE-bench raw results (120 runs)
-  swe_summary_FINAL.csv        - SWE-bench summary table
-  ablation_results_FINAL.jsonl - Q1 ablation results (140 runs)
-  ablation_summary.csv         - Q1 summary table
-  q2_state_prediction.txt      - Q2 state predictor results
-  q2_complete_analysis.txt     - Q2 full analysis with decision tree rules
-/taxonomy                      - Semester 1 SLR and 7-layer taxonomy
-/docs                          - Research paper and presentations
-/reports                       - Weekly progress reports
-```
+    /experiments
+      run_eval_v2.py               - HumanEval evaluation script
+      swe_eval_proper.py           - SWE-bench evaluation script
+      ablation_study.py            - Prompt ablation script (RQ2)
+      eval_results.jsonl           - HumanEval raw results (656 runs)
+      swe_results_FINAL.jsonl      - SWE-bench raw results (120 runs)
+      ablation_results_FINAL.jsonl - Ablation raw results (140 runs)
+      q2_state_prediction.txt      - State prediction results (RQ3)
+      q2_complete_analysis.txt     - Decision tree rules (RQ3)
+    /analysis
+      mcnemar_tests.py             - Pairwise McNemar tests
+      rq3_baseline.py              - Majority baseline vs decision tree
+      decisive_tasks.py            - The 19 disagreeing tasks
+    /taxonomy                      - Semester 1 SLR and taxonomy (RQ1)
+    /docs                          - Final paper and defence presentation
+    /reports                       - Weekly progress reports
+    LICENSE                        - MIT
 
 ---
 
 ## Replication
 
-```bash
-# 1. Start OpenHands
-docker run -d --name openhands-eval --memory="4g" \
-    -e SANDBOX_VOLUMES="$(pwd)/workspace:/workspace:rw" \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -p 3000:3000 \
-    ghcr.io/all-hands-ai/openhands:latest
+    # 1. Start OpenHands
+    docker run -d --name openhands-eval --memory="4g" \
+        -e SANDBOX_VOLUMES="$(pwd)/workspace:/workspace:rw" \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -p 3000:3000 \
+        ghcr.io/all-hands-ai/openhands:latest
 
-# 2. Configure: claude-haiku-4-5 via Anthropic API
+    # 2. Configure claude-haiku-4-5 via Anthropic API
 
-# 3. Run HumanEval (164 tasks)
-python3 experiments/run_eval_v2.py --tasks 164
+    # 3. Run evaluations
+    python3 experiments/run_eval_v2.py --tasks 164
+    python3 experiments/swe_eval_proper.py --tasks 30
+    python3 experiments/ablation_study.py --tasks 20
 
-# 4. Run SWE-bench (30 tasks)
-python3 experiments/swe_eval_proper.py --tasks 30
-
-# 5. Run Prompt Ablation Study
-python3 experiments/ablation_study.py --tasks 20
-```
+> Reproducibility: the study used the unpinned :latest Docker tag and single-pass runs with unrecorded temperature/seed — stated openly in the paper's Limitations.
 
 ---
 
 ## Key Literature
 
-| Paper | Year | Key Contribution |
+| Paper | Year | Reference |
 |---|---|---|
-| MetaGPT | 2024 | SOPs for multi-agent workflows |
-| ChatDev | 2024 | Waterfall model with chat chain |
-| MapCoder | 2024 | Multi-agent competitive coding |
-| Magentic-One | 2025 | Manager-worker orchestration |
-| PotPie | 2025 | Knowledge graph grounding |
+| MetaGPT | 2024 | arXiv:2308.00352 |
+| ChatDev | 2024 | ACL 2024 |
+| MapCoder | 2024 | ACL 2024 |
+| Magentic-One | 2025 | arXiv:2411.04468 |
+| PotPie | 2025 | GitHub |
+| OpenHands | 2024 | arXiv:2407.16741 |
+| Agentless | 2024 | arXiv:2407.01489 |
+| HumanEval | 2021 | arXiv:2107.03374 |
+| SWE-bench | 2024 | ICLR 2024 |
 
 ---
 
 ## Contact
 
-**Student:** Shahab Ali | ID: 503271 | Group: J4132
-**University:** ITMO University — Faculty of AI Technologies (FATII)
-**Supervisor:** Professor Sergey Kovalchuk
+**Shahab Ali** | ID: 503271 | Group: J4132
+ITMO University — Faculty of AI Technologies (FATII)
+Supervisor: Professor Sergey Kovalchuk
