@@ -17,9 +17,11 @@
 
 This research evaluates how different multi-agent role configurations affect LLM agent performance on standard software engineering benchmarks. The same underlying model is tested across four role configurations to isolate the effect of role assignment from model capability.
 
-**Total experimental runs: 773**
-- HumanEval: 164 tasks x 4 configurations = 656 runs
+**Total experimental runs: 937**
+- HumanEval: 164 tasks x 4 configurations = 776 runs
 - SWE-bench Lite: 30 tasks x 4 configurations = 120 runs
+- Prompt Ablation: 20 tasks x 7 variants = 140 runs
+- Phase 1 (early): 21 runs
 - Prompt Ablation (Q1): 20 tasks x 7 variants = 140 runs
 
 ---
@@ -116,8 +118,8 @@ After defense rejection for insufficient sample size, experiments were massively
 | HumanEval | 164 tasks (full benchmark) |
 | SWE-bench | 30 tasks (SWE-bench Lite) |
 | Ablation | 20 tasks x 7 prompt variants |
-| Timeout | 600 seconds per config per task |
-| Total Runs | 773 |
+| Timeout | 400 s (HumanEval) · 600 s (SWE-bench) |
+| Total Runs | 916 (+ 21 Phase 1 = 937 total) |
 
 **Four Role Configurations:**
 
@@ -136,7 +138,7 @@ pass@1 = agent passes ALL official test cases on first attempt.
 
 | Configuration | Tasks | Pass | Fail | pass@1 | vs Baseline |
 |---|---|---|---|---|---|
-| Baseline (No Roles) | 161 | 149 | 12 | 92.5% | — |
+| Baseline (No Roles) | 164 | 151 | 13 | 92.1% | — |
 | Coder Only | 164 | 155 | 9 | 94.5% | +2.0 pp |
 | Coder + Tester | 164 | 152 | 12 | 92.7% | +0.2 pp |
 | **Manager+Coder+Tester** | **164** | **156** | **8** | **95.1%** | **+2.6 pp** |
@@ -169,10 +171,10 @@ resolve_rate = agent modified correct source files, verified via git diff agains
 
 | Configuration | HumanEval | SWE-bench | vs Baseline (HE) | vs Baseline (SWE) |
 |---|---|---|---|---|
-| Baseline | 92.5% | 73.3% | — | — |
-| Coder Only | 94.5% | 83.3% | +2.0 pp | +10.0 pp |
-| Coder + Tester | 92.7% | 66.7% | +0.2 pp | -6.6 pp |
-| Manager+Coder+Tester | 95.1% | 80.0% | +2.6 pp | +6.7 pp |
+| Baseline | 92.1% | 73.3% | — | — |
+| Coder Only | 94.5% | 83.3% | +2.4 pp | +10.0 pp |
+| Coder + Tester | 92.7% | 66.7% | +0.6 pp | -6.6 pp |
+| Manager+Coder+Tester | 95.1% | 80.0% | +3.0 pp | +6.7 pp |
 
 ---
 
@@ -198,57 +200,39 @@ resolve_rate = agent modified correct source files, verified via git diff agains
 
 ---
 
-### Research Question 2 — State Prediction Method
+### Research Question 2 — State Prediction and Coordination Overhead
 
-**Question:** How can we select the appropriate role for a given task scientifically?
+**Finding: The Coordination Overhead Principle**
 
-**Method:** Decision Tree classifier trained on 12 task features (state representation) predicts optimal role configuration.
+On repository-level tasks (SWE-bench), adding a Tester is net-negative:
+- Coder+Tester resolves 20/30 against Baseline's 22/30
+- Coder+Tester is 99 seconds slower per task (331s vs 232s)
+- Every failure is a timeout — coordination pushes tasks past the budget
 
-**State Features:**
-- Structural: num_lines, num_words, num_chars, indentation
-- Semantic: type_count, uses_list, uses_dict, uses_optional
-- Complexity: examples, complex_words, return_hints, docstring_blocks
-
-**Learned Decision Rules:**
-
-```
-|--- type_count <= 9.5
-|   |--- num_words <= 217.0  -->  baseline  (simple task)
-|   |--- num_words > 217.0   -->  coder     (long description)
-|--- type_count > 9.5
-|   |--- examples <= 1.0     -->  baseline
-|   |--- examples > 1.0      -->  coder     (complex + examples)
-
-5-fold cross-validation accuracy: 86.0%
-```
-
-**Results:**
+**State Prediction — Negative Result:**
 
 | Method | pass@1 | Type |
 |---|---|---|
-| Baseline | 92.5% | Fixed |
+| Baseline | 92.1% | Fixed |
 | Coder Only | 94.5% | Fixed |
 | Manager+Coder+Tester | 95.1% | Fixed |
-| **State Predictor (DT)** | **93.3%** | **Scientific Method** |
+| Majority-class policy | 95.1% | Trivial |
+| State Predictor (DT) | 94.5% | Dynamic |
 
-**Feature Importance:**
+The learned selector does **not** beat the trivial always-baseline policy. This is a ceiling effect: baseline passes 151/164 tasks, only 8 are rescuable by any role — too few positives for a classifier to exploit.
 
-| Feature | Importance | Meaning |
-|---|---|---|
-| type_count | 0.267 | Number of type annotations |
-| num_words | 0.217 | Task description length |
-| examples | 0.159 | Number of docstring examples |
-| uses_list | 0.154 | Whether List type is used |
-| num_lines | 0.153 | Prompt length in lines |
+**Top features (6 of 12 used; rest have importance = 0):**
 
-**Task Difficulty Analysis:**
+| Feature | Importance |
+|---|---|
+| type_count | 0.267 |
+| num_words | 0.217 |
+| examples | 0.159 |
+| uses_list | 0.154 |
+| num_lines | 0.153 |
+| complex_words | 0.050 |
 
-| Category | Count | Note |
-|---|---|---|
-| Tasks where config selection matters | 6 (3.7%) | Only 1 config passes |
-| Tasks where all configs work equally | 158 (96.3%) | Multiple configs pass |
-
-**Scientific Finding:** For 96.3% of tasks, all role configurations pass equally. Config selection only matters for the hardest 3.7% of tasks — revealing that role configuration acts as a safety mechanism for boundary cases, not a general performance booster.
+**Key finding:** Role configuration matters for only 8 of 164 tasks. On 145 tasks all four configurations produce identical outcomes.
 
 ---
 
