@@ -262,3 +262,15 @@ ITMO University — Faculty of AI Technologies (FATII)
 Supervisor: Professor Sergey Kovalchuk
 
  
+
+---
+
+## Final Paper
+
+**Title:** Agentic Role Bounding and Optimization in Multi-Agent LLM Systems for Software Engineering
+
+**File:** `docs/research_paper_final.pdf`
+
+Two research questions:
+- RQ1: How can an agent role be formally defined so its effect is controllable, and how can the appropriate configuration be selected from task state?
+- RQ2: How can the intrinsic efficiency of an agent-role architecture be measured independently of final task success?
