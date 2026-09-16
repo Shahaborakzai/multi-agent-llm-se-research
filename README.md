@@ -5,7 +5,7 @@
 ![Model](https://img.shields.io/badge/Model-claude--haiku--4--5-purple)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-# Multi-Agent LLM Evaluation for Software Engineering
+# Agentic Role Bounding and Optimization in Multi-Agent LLM Systems for Software Engineering
 
 **ITMO University | Faculty of Artificial Intelligence Technologies (FATII)**
 **Student:** Shahab Ali | ID: 503271 | Group: J4132
@@ -13,236 +13,467 @@
 
 ---
 
-## Key Findings
+## Research Summary
 
-| Finding | Result |
-|---|---|
-| Role identity alone ("You are a Coder") | 0/20 — zero effect |
-| Output format constraint added | 20/20 — the critical component |
-| Adding a Tester (SWE-bench) | 20/30 vs 22/30 baseline — net-negative, 99 s slower |
-| Learned role selector | 94.5% vs 95.1% trivial policy — does not beat it |
-| Where configuration matters | 19 of 164 tasks (8 rescued, 11 lost) |
+This project studies how agent roles in LLM-based software engineering systems can be defined operationally, selected according to task state, and evaluated independently of final task success.
 
-**Total: 937 runs · one model · one variable**
+The research developed through four stages:
+
+**Role Taxonomy → Role Bounding → State-Driven Selection → Architecture Measurement**
+
+### Final Research Questions
+
+**RQ1 — Role Exposure and Optimization**
+
+How can an agent role be formally defined so that its effect is controllable, and how can an appropriate role configuration be selected according to task state?
+
+**RQ2 — Architecture Measurement**
+
+How can the intrinsic efficiency and stability of an agent-role architecture be measured independently of final task success?
 
 ---
 
-## Project Overview
-
-This research evaluates how different multi-agent role configurations affect LLM agent performance on standard software engineering benchmarks. The same underlying model is tested across four role configurations to isolate the effect of role assignment from model capability.
-
-**Total experimental runs: 937**
+## Experimental Scope
 
 | Component | Count |
-|---|---|
-| HumanEval (164 tasks × 4 configurations) | 656 runs |
-| SWE-bench Lite (30 tasks × 4 configurations) | 120 runs |
-| Prompt ablation (20 tasks × 7 variants) | 140 runs |
-| Phase 1 (early experiments) | 21 runs |
+|---|---:|
+| HumanEval: 164 tasks × 4 configurations | 656 |
+| SWE-bench Lite: 30 tasks × 4 configurations | 120 |
+| Prompt ablation: 20 tasks × 7 variants | 140 |
 | **Phase 2 total** | **916** |
+| Phase 1 exploratory runs | 21 |
 | **All-time total** | **937** |
 
----
+Phase 2 holds the model constant and varies the role configuration.
 
-## Research Questions
-
-| RQ | Question | Answer |
-|---|---|---|
-| RQ1 | Which agent roles exist in LLM-based SE frameworks? | 7-layer taxonomy from 19 sources |
-| RQ2 | Which prompt component produces the effect? | The output constraint, not the persona |
-| RQ3 | Can configuration be predicted from the task? | No — ceiling effect, negative result |
+**Model:** `claude-haiku-4-5`
+**Framework:** OpenHands CodeAct
+**HumanEval timeout:** 400 s
+**SWE-bench timeout:** 600 s
 
 ---
 
-## Semester 1 — Structured Literature Review (RQ1)
+## Main Findings
 
-Following PRISMA-style inclusion criteria, 19 sources were analysed (2023–2025): 7 multi-agent systems and 12 surveys, taxonomies and empirical studies.
-
-**Search Keywords:** ("Large Language Model" OR "LLM") AND ("Software Engineering") AND ("Multi-agent" OR "Role-based")
-
-**7-layer Agent Role Taxonomy:**
-
-    Agent Roles — 7 Layers
-    ├── 1. Orchestration      → Manager, Supervisor, Project Coordinator (5 sources)
-    ├── 2. Analysis/Planning  → Planner, Requirement Analyst (5 sources)
-    ├── 3. Design             → Architect, System Modeler (4 sources)
-    ├── 4. Implementation     → Coder, Executor (5 sources)
-    ├── 5. Quality Assurance  → Tester, Reviewer, Debugger (5 of 7 systems — largest)
-    ├── 6. Knowledge          → KG Curator, Documentation Writer (8 sources)
-    └── 7. Operations         → Tooling, Environment Interface (6 sources)
-
-**Key Frameworks:**
-
-| Framework | Year | Core Roles | Key Technique |
-|---|---|---|---|
-| MetaGPT | 2024 | PM, Architect, Engineer, QA | SOPs to guide workflows |
-| ChatDev | 2024 | CEO, CTO, Programmer, Reviewer | Waterfall + Chat Chain |
-| Magentic-One | 2025 | Manager, Specialist Agents | Manager-Worker orchestration |
-| PotPie | 2025 | Debugger, Tester, KG Curator | Knowledge Graph grounding |
-
-**Key Trend:** Shift from code generation to verification — the QA layer dominates (5 of the 7 systems; 9 of 19 sources).
-
----
-
-## Semester 2 — Initial Experiments (Phase 1)
-
-Tested local vs cloud LLMs within OpenHands CodeAct framework. 21 runs total.
-
-**HumanEval (15 tasks):**
-
-| Config | LLM | Pass% |
-|---|---|---|
-| Single Coder | Local 7B | 0% |
-| Coder+Tester | Local 7B | 0% |
-| Single Coder | Cloud 120B | 100% |
-| Coder+Tester | Cloud 120B | 100% |
-
-> Note: the 7B condition covers two HumanEval tasks plus deployment attempts — an infrastructure finding, not a benchmark result.
-
-**SWE-bench (6 tasks, different tasks before/after):**
-
-| Condition | Pass Rate |
+| Finding | Observed result |
 |---|---|
-| Without Anti-Paralysis instruction | 33.3% |
-| With Anti-Paralysis instruction | 100% |
+| Role identity only | Coder A: 0/20 in the prompt ablation |
+| Identity + responsibility | Coder B: 0/20 |
+| Identity + responsibility + explicit output constraint | Coder C: 20/20 |
+| HumanEval configuration sensitivity | 19 of 164 tasks change outcome across configurations |
+| HumanEval architecture-insensitive tasks | 145 of 164 |
+| Learned selector | 94.53% CV accuracy |
+| Majority-class policy | 95.13% CV accuracy |
+| Selector margin | −0.61 percentage points |
+| SWE-bench Coder+Tester vs Coder runtime | +99.2 s/task observed mean difference |
 
-> An observation on six different tasks that motivated the redesign, not a controlled comparison.
-
-**Key Discoveries:**
-
-**1. Self-Healing Phenomenon** — 120B model autonomously recovered from errors in 9/10 cases (90% recovery rate).
-
-**2. Agentic Paralysis** — a failure mode where agents reason correctly but fail to execute the tool call.
-
-**3. Ten Failure Types** catalogued across the runs (XML schema errors, context collapse, verbose paralysis, and 7 more).
+These findings are specific to the experimental setting used here and are not claimed to establish universal superiority of any role configuration.
 
 ---
 
-## Phase 2 — Extended Experiments (2026)
+## Semester 1 — Prior Foundation: Seven-Layer Role Taxonomy
 
-After the first defence identified insufficient sample size, experiments were expanded with a fully automated pipeline.
+A structured review of 19 sources produced a seven-layer taxonomy of agent roles.
 
-| Component | Details |
+The categories are non-exclusive: one source may contribute to multiple role families.
+
+```text
+Agent Roles — 7 Layers
+├── 1. Orchestration         5 sources
+├── 2. Analysis & Planning   5 sources
+├── 3. Design                4 sources
+├── 4. Implementation        5 sources
+├── 5. Quality Assurance     9 sources
+├── 6. Knowledge & Docs      8 sources
+└── 7. Operations & Tooling  6 sources
+```
+
+Quality Assurance is the most represented role family in this review.
+
+The review motivated the next question: roles are commonly described by names and responsibilities, but their operational boundaries are rarely isolated experimentally.
+
+---
+
+## Phase 1 — Exploratory Work
+
+Phase 1 contained 21 early exploratory runs.
+
+This phase preceded the controlled redesign and did not use structured event logging. Its observations are therefore treated as exploratory rather than as controlled benchmark results.
+
+Observed phenomena included:
+
+- **Autonomous recovery:** 9 of 10 observed error events were followed by successful completion without human intervention.
+- **Agentic Paralysis:** the agent states the next action but fails to issue the corresponding tool call.
+- **Verbose Paralysis:** one observed run repeated similar reasoning 200+ times before a rate-limit / chain failure.
+- **Ten failure types:** catalogued qualitatively from the exploratory runs.
+
+An anti-paralysis instruction was also tested on different SWE-bench tasks:
+
+```text
+If any single action fails or repeats more than 3 times,
+STOP immediately.
+Run: ls /workspace/ to reorient yourself.
+Maximum 3 attempts per action.
+```
+
+The observed change was 1/3 resolved before and 3/3 after, but the tasks were different. This is reported only as a motivating observation, not as a controlled causal comparison.
+
+---
+
+## Phase 2 — Controlled Experimental Program
+
+The Phase 2 redesign addressed the main confound in Phase 1 by holding the model constant across configurations.
+
+### Four Main Configurations
+
+1. Baseline
+2. Coder
+3. Coder + Tester
+4. Manager + Coder + Tester
+
+---
+
+## HumanEval Results
+
+Full HumanEval benchmark: 164 tasks × 4 configurations = 656 runs.
+
+| Configuration | Pass | Fail | pass@1 |
+|---|---:|---:|---:|
+| Baseline | 151 | 13 | 92.1% |
+| Coder | 155 | 9 | 94.5% |
+| Coder + Tester | 152 | 12 | 92.7% |
+| Manager + Coder + Tester | 156 | 8 | 95.1% |
+
+Observed differences are small.
+
+The best-minus-worst difference is 3.0 percentage points.
+
+Baseline is the only configuration that produced SyntaxErrors in this evaluation:
+
+- Baseline: 4 SyntaxErrors
+- Coder: 0
+- Coder+Tester: 0
+- Full system: 0
+
+### Architecture-Sensitive Tasks
+
+Out of 164 HumanEval tasks:
+
+- **145** have identical outcomes across all four configurations.
+- **19** are architecture-sensitive.
+- **8** are rescued after baseline failure.
+- **11** are lost by at least one role configuration.
+- **5** are solved by no configuration.
+
+All-fail tasks:
+
+```text
+HumanEval/32
+HumanEval/38
+HumanEval/50
+HumanEval/116
+HumanEval/145
+```
+
+Maximum achievable task success across the observed configurations:
+
+```text
+159 / 164 = 96.95%
+```
+
+---
+
+## SWE-bench Lite Results
+
+The first 30 SWE-bench Lite tasks were evaluated under all four configurations.
+
+Resolution is based on file-level git-diff overlap against the reference patch, not the official SWE-bench test suite.
+
+| Configuration | Resolved | Failed | Rate | Mean runtime |
+|---|---:|---:|---:|---:|
+| Baseline | 22 | 8 | 73.3% | 296.0 s |
+| Coder | 25 | 5 | 83.3% | 232.1 s |
+| Coder + Tester | 20 | 10 | 66.7% | 331.3 s |
+| Manager + Coder + Tester | 24 | 6 | 80.0% | 295.2 s |
+
+Observed mean runtime difference:
+
+```text
+Coder+Tester − Coder = +99.2 s/task
+```
+
+All six pairwise McNemar comparisons produced:
+
+```text
+p > 0.05
+```
+
+The resolve-rate differences are therefore not statistically significant in this sample.
+
+Official SWE-bench evaluation may produce different results because this study uses an internal file-level criterion.
+
+---
+
+## RQ1a — Constrained Action Space
+
+The proposed role representation is:
+
+```text
+R = (A_R, O_R, T_R)
+```
+
+where:
+
+- `A_R` = permitted actions
+- `O_R` = output/schema constraints
+- `T_R` = permitted tools and transitions
+
+For task state `s`:
+
+```text
+A_R(s) ⊆ A
+```
+
+The current experiments directly evaluate only the output-constraint component `O_R`.
+
+Action and tool/transition constraints remain proposed extensions for future validation.
+
+---
+
+## Prompt Ablation
+
+Seven prompt variants were tested on HumanEval/0–19.
+
+20 tasks × 7 variants = 140 runs.
+
+| Variant | Components | Result |
+|---|---|---:|
+| Baseline | output constraint only | 19/20 |
+| Coder A | identity | 0/20 |
+| Coder B | identity + responsibility | 0/20 |
+| Coder C | identity + responsibility + output constraint | 20/20 |
+| Full A | three role titles | 0/20 |
+| Full B | titles + responsibilities | 0/20 |
+| Full C | titles + responsibilities + output constraint | 19/20 |
+
+Only the variants carrying an explicit output-format constraint succeeded in this experiment.
+
+Prompt length was not fully controlled and the variants were not token- or length-matched.
+
+However, the shortest constrained prompt passes 19/20 while the longest unconstrained prompt passes 0/20, making a length-only explanation unlikely without fully ruling it out.
+
+---
+
+## RQ1b — State-Driven Configuration Selection
+
+Role selection is formulated as:
+
+```text
+π(a | s)
+```
+
+where:
+
+- `s` = task state
+- `a` = selected role configuration
+
+Candidate configurations:
+
+```text
+{baseline, coder, coder+tester, full system}
+```
+
+### Label Rule
+
+The first passing configuration is selected in the fixed order:
+
+```text
+baseline → coder → coder+tester → full system
+```
+
+Tasks solved by no configuration default to baseline.
+
+### Class Distribution
+
+| Class | Count |
+|---|---:|
+| Baseline | 156 |
+| Coder | 8 |
+| Coder+Tester | 0 |
+| Full system | 0 |
+
+### Five-Fold Cross-Validation
+
+| Policy | Classification accuracy |
+|---|---:|
+| Majority-class policy | 95.13% |
+| Decision Tree | 94.53% |
+| **Margin** | **−0.61 pp** |
+
+Unrounded means:
+
+```text
+Decision Tree : 0.9452651515
+Majority      : 0.9513257576
+Margin        : −0.606061 pp
+```
+
+This is reported as a negative result.
+
+Under this labeling rule, only 8 of 164 tasks receive a non-baseline label, producing severe class imbalance.
+
+### Nonzero Feature Importances
+
+| Feature | Importance |
+|---|---:|
+| type_count | 0.344817 |
+| num_lines | 0.277943 |
+| num_words | 0.275645 |
+| uses_list | 0.060159 |
+| complex_words | 0.041437 |
+
+The remaining seven features have zero importance in the fitted tree.
+
+---
+
+## RQ2 — Architecture-Level Measurement
+
+Three architecture-level metrics are proposed.
+
+### Coordination Friction
+
+```text
+F_coord = T_coord / T_total
+```
+
+Share of the token budget spent on coordination.
+
+**Status:** proposed.
+
+The observed +99.2 s/task runtime difference between Coder+Tester and Coder provides motivation for measuring coordination cost, but it is not itself a measurement of `F_coord`.
+
+### Autonomous Recovery Rate
+
+```text
+R_auto = E_recovered / E_total
+```
+
+**Exploratory Phase 1 value:**
+
+```text
+9 / 10 = 0.90
+```
+
+This value was reconstructed from qualitative weekly reports rather than structured event logs.
+
+### Boundary Violation Rate
+
+```text
+V_boundary =
+N_violations /
+N_role-governed_actions
+```
+
+**Status:** proposed.
+
+The Phase 1 failure taxonomy provides candidate events, but no automated violation counter was implemented.
+
+---
+
+## Reproducibility Record
+
+| Item | Value |
 |---|---|
-| Framework | OpenHands CodeAct (Docker) |
-| Model | claude-haiku-4-5 (same for ALL configurations) |
-| HumanEval | 164 tasks (full benchmark) |
-| SWE-bench Lite | the first 30 tasks |
-| Ablation | the first 20 tasks × 7 prompt variants |
-| Timeout | 400 s (HumanEval) · 600 s (SWE-bench) |
-| Total Runs | 776 evaluation + 140 ablation = 916 |
+| Model | claude-haiku-4-5 via Anthropic API |
+| Main comparison | same model across all four configurations |
+| Framework | OpenHands CodeAct |
+| Docker image | `ghcr.io/all-hands-ai/openhands:latest` |
+| Docker image status | unpinned |
+| HumanEval | all 164 tasks |
+| HumanEval timeout | 400 s |
+| SWE-bench Lite | first 30 tasks |
+| SWE timeout | 600 s |
+| Ablation | HumanEval/0–19 |
+| Repeats | single run per condition |
+| Temperature | not recorded |
+| Generation seed | not recorded |
+| Selector | DecisionTreeClassifier(max_depth=4, random_state=42) |
+| Cross-validation | 5-fold StratifiedKFold, shuffle=True, random_state=42 |
 
-**Four Role Configurations:** Baseline (no roles) · Coder only · Coder+Tester · Manager+Coder+Tester
-
----
-
-### HumanEval Results (pass@1)
-
-| Configuration | Tasks | Pass | Fail | pass@1 | vs Baseline |
-|---|---|---|---|---|---|
-| Baseline (No Roles) | 164 | 151 | 13 | 92.1% | — |
-| Coder Only | 164 | 155 | 9 | 94.5% | +2.4 pp |
-| Coder + Tester | 164 | 152 | 12 | 92.7% | +0.6 pp |
-| Manager+Coder+Tester | 164 | 156 | 8 | 95.1% | +3.0 pp |
-
-Baseline is the only configuration producing SyntaxErrors (four); every role prompt produced zero.
-
----
-
-### SWE-bench Lite Results (resolve rate)
-
-| Configuration | Resolved | Failed | Rate | Avg Time | Resolved Avg |
-|---|---|---|---|---|---|
-| Baseline | 22 | 8 | 73.3% | 296s | 169s |
-| **Coder Only** | **25** | **5** | **83.3%** | **232s** | **152s** |
-| Coder + Tester | 20 | 10 | 66.7% | 331s | 174s |
-| Manager+Coder+Tester | 24 | 6 | 80.0% | 295s | 206s |
-
-> All failures are timeouts, not logic errors. On 30 paired tasks, no pairwise McNemar test can reach significance (minimum achievable p = 0.0625) — the resolve-rate differences are within noise; the timing is the signal.
-
----
-
-### RQ2 — Prompt Ablation (The Constrained Action Space)
-
-7 prompt variants tested on the first 20 HumanEval tasks (140 runs):
-
-| Variant | Components | pass@1 |
-|---|---|---|
-| Baseline | No role (constraint only) | 95.0% |
-| Coder A | Identity only | 0.0% |
-| Coder B | Identity + Responsibility | 0.0% |
-| **Coder C** | **Identity + Resp. + Format** | **100.0%** |
-| Full A | All titles only | 0.0% |
-| Full B | All titles + responsibilities | 0.0% |
-| Full C | All full prompts with format | 95.0% |
-
-**Finding:** the output format constraint is the single critical component. Prompt length is ruled out: the constraint-only variant is a short prompt and passes 19/20, while the longest no-constraint variant passes 0/20.
-
----
-
-### RQ3 — State Prediction (Negative Result)
-
-| Method | pass@1 | Type |
-|---|---|---|
-| Baseline | 92.1% | Fixed |
-| Coder Only | 94.5% | Fixed |
-| Coder + Tester | 92.7% | Fixed |
-| Manager+Coder+Tester | 95.1% | Fixed |
-| **Majority-class policy** | **95.1%** | **Trivial** |
-| **State Predictor (DT)** | **94.5%** | **Dynamic** |
-
-The learned selector does **not** beat the trivial always-baseline policy. Ceiling effect: baseline passes 151/164 tasks; only 8 are rescuable by any role (all 8 by the single Coder); 5 are solved by nothing. Role configuration changes the outcome on 19 of 164 tasks; on the remaining 145, all four configurations produce identical results.
-
-**Feature importance (6 of 12 used, rest = 0):** type_count 0.267 · num_words 0.217 · examples 0.159 · uses_list 0.154 · num_lines 0.153 · complex_words 0.050
+Exact reproduction is limited by the unpinned Docker image and unrecorded generation temperature/seed.
 
 ---
 
 ## Repository Structure
 
-    /experiments
-      run_eval_v2.py               - HumanEval evaluation script
-      swe_eval_proper.py           - SWE-bench evaluation script
-      ablation_study.py            - Prompt ablation script (RQ2)
-      eval_results.jsonl           - HumanEval raw results (656 runs)
-      swe_results_FINAL.jsonl      - SWE-bench raw results (120 runs)
-      ablation_results_FINAL.jsonl - Ablation raw results (140 runs)
-      q2_state_prediction.txt      - State prediction results (RQ3)
-      q2_complete_analysis.txt     - Decision tree rules (RQ3)
-    /analysis
-      mcnemar_tests.py             - Pairwise McNemar tests
-      rq3_baseline.py              - Majority baseline vs decision tree
-      decisive_tasks.py            - The 19 disagreeing tasks
-    /taxonomy                      - Semester 1 SLR and taxonomy (RQ1)
-    /docs                          - Final paper and defence presentation
-    /reports                       - Weekly progress reports
-    LICENSE                        - MIT
+```text
+experiments/
+  run_eval_v2.py
+  swe_eval_proper.py
+  ablation_study.py
+
+  eval_results.jsonl
+  swe_results_FINAL.jsonl
+  ablation_results_FINAL.jsonl
+
+analysis/
+  mcnemar_tests.py
+  rq3_baseline.py
+  decisive_tasks.py
+
+taxonomy/
+  Semester 1 taxonomy materials
+
+docs/
+  research_paper.pdf
+  Shahab_Ali_FINAL_Presentation.pptx
+
+reports/
+  Phase 1 and progress reports
+
+RESULTS_APPENDIX.md
+```
+
+---
+
+## Complete Experimental Appendix
+
+`RESULTS_APPENDIX.md` contains the detailed experimental record generated from the result files, including:
+
+- complete run accounting
+- HumanEval configuration results
+- architecture-sensitive tasks
+- SWE-bench task-level outcomes
+- pairwise McNemar tests
+- exact prompt-ablation definitions and results
+- state-selector analysis
+- reproducibility details
+- explicitly labeled Phase 1 exploratory observations
 
 ---
 
 ## Replication
 
-    # 1. Start OpenHands
-    docker run -d --name openhands-eval --memory="4g" \
-        -e SANDBOX_VOLUMES="$(pwd)/workspace:/workspace:rw" \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -p 3000:3000 \
-        ghcr.io/all-hands-ai/openhands:latest
+The raw Phase 2 result files and experiment scripts are included in this repository.
 
-    # 2. Configure claude-haiku-4-5 via Anthropic API
+The experiments were originally executed through OpenHands CodeAct using `claude-haiku-4-5`.
 
-    # 3. Run evaluations
-    python3 experiments/run_eval_v2.py --tasks 164
-    python3 experiments/swe_eval_proper.py --tasks 30
-    python3 experiments/ablation_study.py --tasks 20
+Example evaluation scripts:
 
-> Reproducibility: the study used the unpinned :latest Docker tag and single-pass runs with unrecorded temperature/seed — stated openly in the paper's Limitations.
+```bash
+python3 experiments/run_eval_v2.py
+python3 experiments/swe_eval_proper.py
+python3 experiments/ablation_study.py
+```
+
+The precise command-line options should be verified from the corresponding script before rerunning.
 
 ---
 
-## Key Literature
+## Selected Literature
 
-| Paper | Year | Reference |
-|---|---|---|
+| Work | Year | Reference |
+|---|---:|---|
 | MetaGPT | 2024 | arXiv:2308.00352 |
 | ChatDev | 2024 | ACL 2024 |
 | MapCoder | 2024 | ACL 2024 |
@@ -253,15 +484,7 @@ The learned selector does **not** beat the trivial always-baseline policy. Ceili
 | HumanEval | 2021 | arXiv:2107.03374 |
 | SWE-bench | 2024 | ICLR 2024 |
 
----
-
-## Contact
-
-**Shahab Ali** | ID: 503271 | Group: J4132
-ITMO University — Faculty of AI Technologies (FATII)
-Supervisor: Professor Sergey Kovalchuk
-
- 
+This is a selected list rather than the complete 19-source review matrix.
 
 ---
 
@@ -269,8 +492,19 @@ Supervisor: Professor Sergey Kovalchuk
 
 **Title:** Agentic Role Bounding and Optimization in Multi-Agent LLM Systems for Software Engineering
 
-**File:** `docs/research_paper_final.pdf`
+**File:** `docs/research_paper.pdf`
 
-Two research questions:
-- RQ1: How can an agent role be formally defined so its effect is controllable, and how can the appropriate configuration be selected from task state?
-- RQ2: How can the intrinsic efficiency of an agent-role architecture be measured independently of final task success?
+---
+
+## Contact
+
+**Shahab Ali**
+ID: 503271 · Group: J4132
+ITMO University · Faculty of Artificial Intelligence Technologies
+Supervisor: Professor Sergey Kovalchuk
+
+---
+
+## License
+
+MIT License
