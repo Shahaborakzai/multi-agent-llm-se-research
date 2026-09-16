@@ -492,7 +492,7 @@ This is a selected list rather than the complete 19-source review matrix.
 
 **Title:** Agentic Role Bounding and Optimization in Multi-Agent LLM Systems for Software Engineering
 
-**File:** `docs/research_paper.pdf`
+**File:** [`docs/Final_Reserch_paper_draft.pdf`](docs/Final_Reserch_paper_draft.pdf)
 
 ---
 
